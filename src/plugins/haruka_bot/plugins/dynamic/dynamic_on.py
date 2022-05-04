@@ -1,5 +1,5 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11.event import MessageEvent
+from nonebot.adapters.mirai2 import MessageEvent
 from nonebot.typing import T_State
 
 from ...database import DB as db
@@ -22,7 +22,7 @@ async def _(event: MessageEvent, state: T_State):
         "dynamic",
         True,
         uid=state["uid"],
-        type=event.message_type,
+        type='group',
         type_id=get_type_id(event),
     ):
         user = await db.get_user(uid=state["uid"])

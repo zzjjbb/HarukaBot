@@ -1,6 +1,6 @@
 from nonebot import on_request
-from nonebot.adapters.onebot.v11 import Bot, FriendRequestEvent, GroupRequestEvent
-
+from nonebot.adapters.mirai2 import Bot
+from nonebot.adapters.mirai2.event import NewFriendRequestEvent as FriendRequestEvent, BotInvitedJoinGroupRequestEvent as GroupRequestEvent
 
 friend_req = on_request(priority=5)
 

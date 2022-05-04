@@ -1,7 +1,7 @@
 from bilireq.exceptions import ResponseCodeError
 from bilireq.user import get_user_info
 from nonebot import on_command
-from nonebot.adapters.onebot.v11.event import MessageEvent
+from nonebot.adapters.mirai2 import MessageEvent
 from nonebot.typing import T_State
 
 from ...database import DB as db
@@ -36,7 +36,7 @@ async def _(event: MessageEvent, state: T_State):
                 )
     result = await db.add_sub(
         uid=uid,
-        type=event.message_type,
+        type='group',
         type_id=get_type_id(event),
         bot_id=event.self_id,
         name=name,

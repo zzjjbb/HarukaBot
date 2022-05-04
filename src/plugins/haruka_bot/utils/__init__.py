@@ -6,11 +6,11 @@ from typing import Union
 import httpx
 import nonebot
 from nonebot import require
-from nonebot.adapters import Bot
-from nonebot.adapters.onebot.v11 import Message, MessageEvent, MessageSegment
-from nonebot.adapters.onebot.v11.event import GroupMessageEvent, PrivateMessageEvent
-from nonebot.adapters.onebot.v11 import ActionFailed, NetworkError
-from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
+from nonebot.adapters import Message, Bot
+from nonebot.adapters.mirai2 import MessageEvent, MessageSegment
+from nonebot.adapters.mirai2.event import GroupMessage, FriendMessage, TempMessage
+from nonebot.adapters.mirai2.exception import ActionFailed, NetworkError
+from nonebot.adapters.mirai2.permission import GROUP_ADMIN, GROUP_OWNER
 from nonebot.exception import FinishedException
 from nonebot.log import logger
 from nonebot.params import CommandArg
@@ -48,15 +48,15 @@ async def handle_uid(
 
 
 async def permission_check(
-    bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent]
+    bot: Bot, event: Union[GroupMessage, FriendMessage, TempMessage]
 ):
     from ..database import DB as db
 
-    if isinstance(event, PrivateMessageEvent):
-        if event.sub_type == "group":  # 不处理群临时会话
-            raise FinishedException
-        return
-    if await db.get_admin(event.group_id) and not await (
+    # if isinstance(event, PrivateMessageEvent):
+    #     if event.sub_type == "group":  # 不处理群临时会话
+    #         raise FinishedException
+    #     return
+    if await db.get_admin(event.sender.group.id) and not await (
         GROUP_ADMIN | GROUP_OWNER | SUPERUSER
     )(bot, event):
         await bot.send(event, "权限不足，目前只有管理员才能使用")
@@ -88,11 +88,12 @@ async def safe_send(bot_id, send_type, type_id, message, at=False):
         message = MessageSegment.at("all") + message
 
     try:
+        print("send_" + send_type + "_message", message, type_id)
         return await bot.call_api(
-            "send_" + send_type + "_msg",
+            "send_" + send_type + "_message",
             **{
-                "message": message,
-                "user_id" if send_type == "private" else "group_id": type_id,
+                "message_chain": message,
+                "user_id" if send_type == "private" else "group": type_id,
             },
         )
     except ActionFailed as e:
@@ -103,7 +104,7 @@ async def safe_send(bot_id, send_type, type_id, message, at=False):
 
 
 def get_type_id(event: MessageEvent):
-    return event.group_id if isinstance(event, GroupMessageEvent) else event.user_id
+    return event.sender.group.id if isinstance(event, GroupMessage) else event.user_id
 
 
 def check_proxy():

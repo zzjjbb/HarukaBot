@@ -1,5 +1,5 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11.event import MessageEvent
+from nonebot.adapters.mirai2.event import MessageEvent
 from nonebot.typing import T_State
 
 from ...database import DB as db
