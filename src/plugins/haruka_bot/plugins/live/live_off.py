@@ -1,9 +1,10 @@
 from nonebot import on_command
-from nonebot.adapters.mirai2 import MessageEvent
 from nonebot.typing import T_State
 
+from ...utils import MessageEvent
 from ...database import DB as db
 from ...utils import get_type_id, permission_check, to_me, handle_uid
+from ...utils.compatible import event_converter
 
 
 live_off = on_command("关闭直播", rule=to_me(), priority=5)
@@ -15,6 +16,7 @@ live_off.handle()(handle_uid)
 
 
 @live_off.got("uid", prompt="请输入要关闭直播的UID")
+@event_converter
 async def _(event: MessageEvent, state: T_State):
     """根据 UID 关闭直播"""
 

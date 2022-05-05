@@ -1,9 +1,10 @@
 from nonebot import on_command
-from nonebot.adapters.mirai2 import MessageEvent
 from nonebot.typing import T_State
 
+from ...utils import MessageEvent
 from ...database import DB as db
 from ...utils import get_type_id, permission_check, to_me, handle_uid
+from ...utils.compatible import event_converter
 
 
 dynamic_on = on_command("开启动态", rule=to_me(), priority=5)
@@ -15,6 +16,7 @@ dynamic_on.handle()(handle_uid)
 
 
 @dynamic_on.got("uid", prompt="请输入要开启动态的UID")
+@event_converter
 async def _(event: MessageEvent, state: T_State):
     """根据 UID 开启动态"""
 
@@ -22,7 +24,7 @@ async def _(event: MessageEvent, state: T_State):
         "dynamic",
         True,
         uid=state["uid"],
-        type='group',
+        type=event.message_type,
         type_id=get_type_id(event),
     ):
         user = await db.get_user(uid=state["uid"])

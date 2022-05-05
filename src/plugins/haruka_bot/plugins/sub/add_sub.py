@@ -1,11 +1,12 @@
 from bilireq.exceptions import ResponseCodeError
 from bilireq.user import get_user_info
 from nonebot import on_command
-from nonebot.adapters.mirai2 import MessageEvent
 from nonebot.typing import T_State
 
+from ...utils import MessageEvent
 from ...database import DB as db
 from ...utils import PROXIES, get_type_id, handle_uid, permission_check, to_me
+from ...utils.compatible import event_converter
 
 add_sub = on_command("关注", aliases={"添加主播"}, rule=to_me(), priority=5)
 add_sub.__doc__ = """关注 UID"""
@@ -16,6 +17,7 @@ add_sub.handle()(handle_uid)
 
 
 @add_sub.got("uid", prompt="请输入要关注的UID")
+@event_converter
 async def _(event: MessageEvent, state: T_State):
     """根据 UID 订阅 UP 主"""
     uid = state["uid"]
@@ -36,7 +38,7 @@ async def _(event: MessageEvent, state: T_State):
                 )
     result = await db.add_sub(
         uid=uid,
-        type='group',
+        type=event.message_type,
         type_id=get_type_id(event),
         bot_id=event.self_id,
         name=name,

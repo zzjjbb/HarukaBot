@@ -1,6 +1,5 @@
 from typing import Optional
-from nonebot.adapters import Message
-from nonebot.adapters.mirai2.message import MessageSegment
+from ...utils import MessageSegment, Message
 from pydantic import BaseModel, root_validator
 # from pydantic import Json
 
@@ -46,5 +45,5 @@ class Dynamic(BaseModel):
             f"{self.name} "
             + f"{type_msg.get(self.type, type_msg[0])}：\n"
             + f"{self.url}\n"
-            + MessageSegment.image(base64=img)
+            + MessageSegment.image(f"base64://{img}")
         )

@@ -6,17 +6,17 @@ from typing import Union
 import httpx
 import nonebot
 from nonebot import require
-from nonebot.adapters import Message, Bot
-from nonebot.adapters.mirai2 import MessageEvent, MessageSegment
-from nonebot.adapters.mirai2.event import GroupMessage, FriendMessage, TempMessage
-from nonebot.adapters.mirai2.exception import ActionFailed, NetworkError
-from nonebot.adapters.mirai2.permission import GROUP_ADMIN, GROUP_OWNER
 from nonebot.exception import FinishedException
 from nonebot.log import logger
 from nonebot.params import CommandArg
-from nonebot.permission import SUPERUSER
 from nonebot.rule import Rule
 from nonebot.typing import T_State
+from .adapter_interface import Bot
+from .adapter_interface import MessageEvent, GroupMessageEvent, PrivateMessageEvent
+from .adapter_interface import Message, MessageSegment
+from .adapter_interface import GROUP_ADMIN, GROUP_OWNER, SUPERUSER
+from .adapter_interface import ActionFailed, NetworkError
+from .compatible import event_converter
 
 from .. import config
 
@@ -47,19 +47,20 @@ async def handle_uid(
         raise FinishedException
 
 
+@event_converter
 async def permission_check(
-    bot: Bot, event: Union[GroupMessage, FriendMessage, TempMessage]
+    bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent]
 ):
     from ..database import DB as db
 
-    # if isinstance(event, PrivateMessageEvent):
-    #     if event.sub_type == "group":  # 不处理群临时会话
-    #         raise FinishedException
-    #     return
-    if await db.get_admin(event.sender.group.id) and not await (
+    if isinstance(event, PrivateMessageEvent):
+        if event.sub_type == "group":  # 不处理群临时会话
+            raise FinishedException
+        return
+    if await db.get_admin(event.group_id) and not await (
         GROUP_ADMIN | GROUP_OWNER | SUPERUSER
     )(bot, event):
-        await bot.send(event, "权限不足，目前只有管理员才能使用")
+        await bot.send_group_message(event.group_id, "权限不足，目前只有管理员才能使用")
         raise FinishedException
 
 
@@ -88,9 +89,10 @@ async def safe_send(bot_id, send_type, type_id, message, at=False):
         message = MessageSegment.at("all") + message
 
     try:
+        # debug
         print("send_" + send_type + "_message", message, type_id)
         return await bot.call_api(
-            "send_" + send_type + "_message",
+            'send_group_message' if send_type == 'group' else 'send_friend_message',
             **{
                 "message_chain": message,
                 "user_id" if send_type == "private" else "group": type_id,
@@ -104,7 +106,7 @@ async def safe_send(bot_id, send_type, type_id, message, at=False):
 
 
 def get_type_id(event: MessageEvent):
-    return event.sender.group.id if isinstance(event, GroupMessage) else event.user_id
+    return event.group_id if isinstance(event, GroupMessageEvent) else event.user_id
 
 
 def check_proxy():

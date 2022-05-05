@@ -14,7 +14,6 @@ class Config(BaseSettings):
     haruka_live_interval: int = haruka_interval
     haruka_dynamic_interval: int = 1
     haruka_dynamic_at: bool = False
-    haruka_bilibili_cookie: Optional[str] = None
 
     class Config:
         extra = "ignore"

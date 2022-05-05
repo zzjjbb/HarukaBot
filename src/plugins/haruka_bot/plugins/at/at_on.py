@@ -1,14 +1,14 @@
 from typing import Union
 
 from nonebot import on_command
-from nonebot.adapters.mirai2.event import GroupMessage, FriendMessage, TempMessage
-from nonebot.adapters.mirai2.permission import GROUP_ADMIN, GROUP_OWNER
-from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
 
+from ...utils import GroupMessageEvent, PrivateMessageEvent
+from ...utils import GROUP_ADMIN, GROUP_OWNER, SUPERUSER
 from ... import config
 from ...database import DB as db
 from ...utils import handle_uid, to_me
+from ...utils.compatible import event_converter
 
 at_on = on_command(
     "开启全体",
@@ -22,12 +22,12 @@ at_on.handle()(handle_uid)
 
 
 @at_on.got("uid", prompt="请输入要开启全体的UID")
-async def _(event: Union[GroupMessage, FriendMessage, TempMessage], state: T_State):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State):
     """根据 UID 开启全体"""
 
-    # if isinstance(event, PrivateMessageEvent):
-    #     await at_on.finish("只有群里才能开启全体")
-    #     return  # IDE 快乐行
+    if isinstance(event, PrivateMessageEvent):
+        await at_on.finish("只有群里才能开启全体")
+        return  # IDE 快乐行
     if await db.set_sub(
         "at", True, uid=state["uid"], type="group", type_id=event.group_id
     ):

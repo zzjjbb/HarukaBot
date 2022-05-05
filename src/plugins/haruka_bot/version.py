@@ -7,5 +7,5 @@ import pkg_resources
 # _dist: pkg_resources.Distribution = pkg_resources.get_distribution("haruka-bot")
 # __version__ = _dist.version
 # VERSION = _dist.parsed_version
-__version__ = "1.3.6.post1"
+__version__ = "1.4.1"
 VERSION = pkg_resources.parse_version(__version__)

@@ -1,9 +1,10 @@
 from nonebot import on_command
-from nonebot.adapters.mirai2.event import MessageEvent
 from nonebot.typing import T_State
 
+from ...utils import MessageEvent
 from ...database import DB as db
 from ...utils import get_type_id, handle_uid, permission_check, to_me
+from ...utils.compatible import event_converter
 
 dynamic_off = on_command("关闭动态", rule=to_me(), priority=5)
 dynamic_off.__doc__ = """关闭动态 UID"""
@@ -14,6 +15,7 @@ dynamic_off.handle()(handle_uid)
 
 
 @dynamic_off.got("uid", prompt="请输入要关闭动态的UID")
+@event_converter
 async def _(event: MessageEvent, state: T_State):
     """根据 UID 关闭动态"""
 
