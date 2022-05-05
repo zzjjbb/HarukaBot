@@ -1,6 +1,6 @@
 from typing import Union, Optional, Literal
-from nonebot.adapters import Event as BaseEvent
 from nonebot.adapters import mirai2
+from functools import wraps
 
 
 # class _WrapEvent:
@@ -21,6 +21,7 @@ class MessageEvent:
 
     def __init__(self, event: mirai2.MessageEvent):
         self.self_id = event.self_id
+        self._mirai_event = event
 
 
 class GroupMessageEvent(MessageEvent):
@@ -65,15 +66,14 @@ class MessageSegment:
 
 
 def event_converter(func):
-    def func_compat(*args, **kwargs):
-        event = args[0]
+    @wraps(func)
+    async def func_compat(**kwargs):
+        event = kwargs['event']
         if isinstance(event, mirai2.GroupMessage):
             event = GroupMessageEvent(event)
         elif isinstance(event, (mirai2.FriendMessage, mirai2.TempMessage)):
             event = PrivateMessageEvent(event)
-        func(event, *args[1:], **kwargs)
+        kwargs['event'] = event
+        await func(**kwargs)
 
-    return func_compat()
-
-
-from functools import wraps
+    return func_compat

@@ -59,8 +59,8 @@ async def permission_check(
         return
     if await db.get_admin(event.group_id) and not await (
         GROUP_ADMIN | GROUP_OWNER | SUPERUSER
-    )(bot, event):
-        await bot.send_group_message(event.group_id, "权限不足，目前只有管理员才能使用")
+    )(bot, event._mirai_event):
+        await bot.send_group_message(target=event.group_id, message_chain=Message("权限不足，目前只有管理员才能使用"))
         raise FinishedException
 
 
@@ -106,7 +106,7 @@ async def safe_send(bot_id, send_type, type_id, message, at=False):
 
 
 def get_type_id(event: MessageEvent):
-    return event.group_id if isinstance(event, GroupMessageEvent) else event.user_id
+    return event.group_id if type(event).__name__ == 'GroupMessageEvent' else event.user_id
 
 
 def check_proxy():

@@ -22,6 +22,7 @@ at_on.handle()(handle_uid)
 
 
 @at_on.got("uid", prompt="请输入要开启全体的UID")
+@event_converter
 async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State):
     """根据 UID 开启全体"""
 
