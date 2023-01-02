@@ -7,21 +7,22 @@ import httpx
 import nonebot
 from nonebot import require
 from nonebot.adapters import Bot
-from nonebot.adapters.onebot.v11 import (
+from .adapter_interface import (
     ActionFailed,
     Message,
     MessageEvent,
     MessageSegment,
     NetworkError,
 )
-from nonebot.adapters.onebot.v11.event import GroupMessageEvent, PrivateMessageEvent
-from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
+from .adapter_interface import GroupMessageEvent, PrivateMessageEvent
+from .adapter_interface import GROUP_ADMIN, GROUP_OWNER
 from nonebot.exception import FinishedException
 from nonebot.log import logger
 from nonebot.matcher import Matcher
 from nonebot.params import ArgPlainText, CommandArg, RawCommand
 from nonebot.permission import SUPERUSER
 from nonebot.rule import Rule
+from .compatible import event_converter
 
 from .. import config
 
@@ -55,19 +56,20 @@ async def uid_check(
     matcher.set_arg("uid", Message(uid))
 
 
+@event_converter
 async def permission_check(
     bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent]
 ):
     from ..database import DB as db
 
-    if isinstance(event, PrivateMessageEvent):
+    if isinstance(event, compatible.PrivateMessageEvent):
         if event.sub_type == "group":  # 不处理群临时会话
             raise FinishedException
         return
     if await db.get_admin(event.group_id) and not await (
         GROUP_ADMIN | GROUP_OWNER | SUPERUSER
-    )(bot, event):
-        await bot.send(event, "权限不足，目前只有管理员才能使用")
+    )(bot, event._mirai_event):
+        await bot.send(event=event._mirai_event, message="权限不足，目前只有管理员才能使用")
         raise FinishedException
 
 
@@ -95,10 +97,10 @@ async def safe_send(bot_id, send_type, type_id, message, at=False):
 
     async def _safe_send(bot, send_type, type_id, message):
         return await bot.call_api(
-            "send_" + send_type + "_msg",
+            'send_group_message' if send_type == 'group' else 'send_friend_message',
             **{
-                "message": message,
-                "user_id" if send_type == "private" else "group_id": type_id,
+                "message_chain": message,
+                "qq" if send_type == "private" else "group": type_id,
             },
         )
 
@@ -127,23 +129,14 @@ async def safe_send(bot_id, send_type, type_id, message, at=False):
     try:
         return await _safe_send(bot, send_type, type_id, message)
     except ActionFailed as e:
-        if e.info["msg"] == "GROUP_NOT_FOUND":
-            from ..database import DB as db
-
-            await db.delete_sub_list(type="group", type_id=type_id)
-            await db.delete_group(id=type_id)
-            logger.error(f"推送失败，群（{type_id}）不存在，已自动清理群订阅列表")
-        elif e.info["msg"] == "SEND_MSG_API_ERROR":
-            url = "https://haruka-bot.sk415.icu/usage/faq.html#机器人不发消息也没反应"
-            logger.error(f"推送失败，账号可能被风控（{url}），错误信息：{e.info}")
-        else:
-            logger.error(f"推送失败，未知错误，错误信息：{e.info}")
+        url = "https://haruka-bot.sk415.icu/usage/faq.html#机器人不发消息也没反应"
+        logger.error(f"推送失败，账号可能被风控（{url}），错误信息：{e.info}")
     except NetworkError as e:
         logger.error(f"推送失败，请检查网络连接，错误信息：{e.msg}")
 
 
 def get_type_id(event: MessageEvent):
-    return event.group_id if isinstance(event, GroupMessageEvent) else event.user_id
+    return event.group_id if isinstance(event._mirai_event, GroupMessageEvent) else event.user_id
 
 
 def check_proxy():
@@ -178,8 +171,6 @@ def on_startup():
 
 
 PROXIES = {"all://": config.haruka_proxy}
-
-require("nonebot_plugin_apscheduler")
-from nonebot_plugin_apscheduler import scheduler
+scheduler = require("nonebot_plugin_apscheduler").scheduler
 
 from .browser import get_dynamic_screenshot  # noqa

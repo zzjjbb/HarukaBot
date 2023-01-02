@@ -1,10 +1,11 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11.event import GroupMessageEvent
-from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
+from ...utils import GroupMessageEvent
+from ...utils import GROUP_ADMIN, GROUP_OWNER
 from nonebot.permission import SUPERUSER
 
 from ...database import DB as db
 from ...utils import group_only, to_me
+from ...utils.compatible import event_converter
 
 permission_off = on_command(
     "关闭权限",
@@ -18,6 +19,7 @@ permission_off.handle()(group_only)
 
 
 @permission_off.handle()
+@event_converter
 async def _(event: GroupMessageEvent):
     """关闭当前群权限"""
     if await db.set_permission(event.group_id, False):

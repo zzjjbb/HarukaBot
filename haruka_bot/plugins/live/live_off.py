@@ -1,9 +1,10 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11.event import MessageEvent
+from ...utils import MessageEvent
 from nonebot.params import ArgPlainText
 
 from ...database import DB as db
 from ...utils import get_type_id, handle_uid, permission_check, to_me, uid_check
+from ...utils import event_converter
 
 live_off = on_command("关闭直播", rule=to_me(), priority=5)
 live_off.__doc__ = """关闭直播 UID"""
@@ -16,6 +17,7 @@ live_off.got("uid", prompt="请输入要关闭直播的UID")(uid_check)
 
 
 @live_off.handle()
+@event_converter
 async def _(event: MessageEvent, uid: str = ArgPlainText("uid")):
     """根据 UID 关闭直播"""
     if await db.set_sub(

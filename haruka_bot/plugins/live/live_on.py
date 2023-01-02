@@ -1,9 +1,10 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11.event import MessageEvent
+from ...utils import MessageEvent
 from nonebot.params import ArgPlainText
 
 from ...database import DB as db
 from ...utils import get_type_id, handle_uid, permission_check, to_me, uid_check
+from ...utils import event_converter
 
 live_on = on_command("开启直播", rule=to_me(), priority=5)
 live_on.__doc__ = """开启直播 UID"""
@@ -16,6 +17,7 @@ live_on.got("uid", prompt="请输入要开启直播的UID")(uid_check)
 
 
 @live_on.handle()
+@event_converter
 async def _(event: MessageEvent, uid: str = ArgPlainText("uid")):
     """根据 UID 开启直播"""
     if await db.set_sub(

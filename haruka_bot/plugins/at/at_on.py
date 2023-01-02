@@ -1,12 +1,13 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11.event import GroupMessageEvent
-from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
+from ...utils import GroupMessageEvent
+from ...utils import GROUP_ADMIN, GROUP_OWNER
 from nonebot.params import ArgPlainText
 from nonebot.permission import SUPERUSER
 
 from ... import config
 from ...database import DB as db
 from ...utils import group_only, handle_uid, to_me, uid_check
+from ...utils import event_converter
 
 at_on = on_command(
     "开启全体",
@@ -22,6 +23,7 @@ at_on.got("uid", prompt="请输入要开启全体的UID")(uid_check)
 
 
 @at_on.handle()
+@event_converter
 async def _(event: GroupMessageEvent, uid: str = ArgPlainText("uid")):
     """根据 UID 开启全体"""
     if await db.set_sub("at", True, uid=uid, type="group", type_id=event.group_id):

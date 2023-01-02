@@ -151,3 +151,6 @@ dmypy.json
 
 # PyCharm
 .idea/
+
+# vim backup file
+*~
