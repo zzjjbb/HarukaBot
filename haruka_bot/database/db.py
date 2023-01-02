@@ -22,6 +22,7 @@ class DB:
     @classmethod
     async def init(cls):
         """初始化数据库"""
+        from . import models
         config = {
             "connections": {
                 # "haruka_bot": {
@@ -32,7 +33,7 @@ class DB:
             },
             "apps": {
                 "haruka_bot_app": {
-                    "models": ["haruka_bot.database.models"],
+                    "models": [models],
                     "default_connection": "haruka_bot",
                 }
             },

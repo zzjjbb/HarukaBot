@@ -12,7 +12,7 @@ from bilireq.grpc.dynamic import grpc_get_user_dynamics
 from bilireq.grpc.protos.bilibili.app.dynamic.v2.dynamic_pb2 import DynamicType
 from grpc import StatusCode
 from grpc.aio import AioRpcError
-from nonebot.adapters.onebot.v11.message import MessageSegment
+from ...utils import MessageSegment
 from nonebot.log import logger
 
 from ...config import plugin_config

@@ -1,4 +1,4 @@
-from nonebot.adapters.onebot.v11.event import MessageEvent
+from ...utils import MessageEvent
 
 from ...database import DB as db
 from ...utils import get_type_id, on_command, permission_check, to_me

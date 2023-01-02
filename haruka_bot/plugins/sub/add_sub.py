@@ -1,8 +1,7 @@
 from bilireq.exceptions import ResponseCodeError
 from bilireq.user import get_user_info
-from nonebot.adapters.onebot.v11.event import MessageEvent
+from ...utils import MessageEvent
 from nonebot.params import ArgPlainText
-from nonebot_plugin_guild_patch import GuildMessageEvent
 
 from ...database import DB as db
 from ...utils import (
@@ -14,6 +13,7 @@ from ...utils import (
     to_me,
     uid_check,
 )
+from ...utils import event_converter
 
 add_sub = on_command("关注", aliases={"添加主播"}, rule=to_me(), priority=5)
 add_sub.__doc__ = """关注 UID"""
@@ -26,6 +26,7 @@ add_sub.got("uid", prompt="请输入要关注的UID")(uid_check)
 
 
 @add_sub.handle()
+@event_converter
 async def _(event: MessageEvent, uid: str = ArgPlainText("uid")):
     """根据 UID 订阅 UP 主"""
     user = await db.get_user(uid=uid)
@@ -44,10 +45,6 @@ async def _(event: MessageEvent, uid: str = ArgPlainText("uid")):
                                     {str(e)}"
                 )
 
-    if isinstance(event, GuildMessageEvent):
-        await db.add_guild(
-            guild_id=event.guild_id, channel_id=event.channel_id, admin=True
-        )
     result = await db.add_sub(
         uid=uid,
         type=event.message_type,

@@ -1,4 +1,4 @@
-from nonebot.adapters.onebot.v11.event import MessageEvent
+from ...utils import MessageEvent
 from nonebot.params import ArgPlainText
 
 from ...database import DB as db
@@ -10,6 +10,7 @@ from ...utils import (
     to_me,
     uid_check,
 )
+from ...utils import event_converter
 
 dynamic_on = on_command("开启动态", rule=to_me(), priority=5)
 dynamic_on.__doc__ = """开启动态 UID"""
@@ -22,6 +23,7 @@ dynamic_on.got("uid", prompt="请输入要开启动态的UID")(uid_check)
 
 
 @dynamic_on.handle()
+@event_converter
 async def _(event: MessageEvent, uid: str = ArgPlainText("uid")):
     """根据 UID 开启动态"""
     if await db.set_sub(

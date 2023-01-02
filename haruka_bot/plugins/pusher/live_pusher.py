@@ -1,7 +1,7 @@
 import time
 
 from bilireq.live import get_rooms_info_by_uids
-from nonebot.adapters.onebot.v11.message import MessageSegment
+from ...utils import MessageSegment
 from nonebot.log import logger
 
 from ...config import plugin_config
