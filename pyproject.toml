@@ -23,7 +23,7 @@ nonebot-plugin-apscheduler = "^0.2.0"
 nonebot2 = "^2.0.0rc2"
 playwright = "^1.28.0"
 pydantic = "^1.10.2"
-python-dotenv = ">=0.19.2,<0.22.0"
+python-dotenv = ">=0.19.2,<1.1.0"
 tortoise-orm = {extras = ["asyncpg"], version = "^0.19.2"}
 bilireq = "^0.2.3.post0"
 packaging = "^21.3"
